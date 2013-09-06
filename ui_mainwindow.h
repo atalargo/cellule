@@ -45,6 +45,7 @@ public:
     QLabel *label;
     QSpinBox *spinNbRow;
     QLabel *cycleLabel;
+    QLabel *fpsLabel;
     QGraphicsView *graphicsView;
     QMenuBar *menuBar;
     QMenu *menu_Fichier;
@@ -92,13 +93,13 @@ public:
         startButton = new QPushButton(frame);
         startButton->setObjectName(QStringLiteral("startButton"));
 
-        verticalLayout->addWidget(startButton);
+        verticalLayout->addWidget(startButton, 0, Qt::AlignTop);
 
         stopButton = new QPushButton(frame);
         stopButton->setObjectName(QStringLiteral("stopButton"));
         stopButton->setEnabled(false);
 
-        verticalLayout->addWidget(stopButton);
+        verticalLayout->addWidget(stopButton, 0, Qt::AlignTop);
 
         horizontalLayout_2 = new QHBoxLayout();
         horizontalLayout_2->setSpacing(6);
@@ -106,23 +107,32 @@ public:
         horizontalLayout_2->setSizeConstraint(QLayout::SetMaximumSize);
         label = new QLabel(frame);
         label->setObjectName(QStringLiteral("label"));
+        label->setMaximumSize(QSize(16777215, 28));
 
-        horizontalLayout_2->addWidget(label);
+        horizontalLayout_2->addWidget(label, 0, Qt::AlignTop);
 
         spinNbRow = new QSpinBox(frame);
         spinNbRow->setObjectName(QStringLiteral("spinNbRow"));
+        spinNbRow->setMaximumSize(QSize(16777215, 26));
         spinNbRow->setMinimum(1);
         spinNbRow->setMaximum(2000);
 
-        horizontalLayout_2->addWidget(spinNbRow);
+        horizontalLayout_2->addWidget(spinNbRow, 0, Qt::AlignTop);
 
 
         verticalLayout->addLayout(horizontalLayout_2);
 
         cycleLabel = new QLabel(frame);
         cycleLabel->setObjectName(QStringLiteral("cycleLabel"));
+        cycleLabel->setMaximumSize(QSize(16777215, 60));
 
         verticalLayout->addWidget(cycleLabel);
+
+        fpsLabel = new QLabel(frame);
+        fpsLabel->setObjectName(QStringLiteral("fpsLabel"));
+        fpsLabel->setMaximumSize(QSize(16777215, 60));
+
+        verticalLayout->addWidget(fpsLabel, 0, Qt::AlignBottom);
 
         splitter->addWidget(frame);
         graphicsView = new QGraphicsView(splitter);
@@ -133,6 +143,7 @@ public:
         brush.setStyle(Qt::NoBrush);
         graphicsView->setBackgroundBrush(brush);
         graphicsView->setCacheMode(QGraphicsView::CacheBackground);
+        graphicsView->setOptimizationFlags(QGraphicsView::DontAdjustForAntialiasing|QGraphicsView::DontClipPainter|QGraphicsView::DontSavePainterState|QGraphicsView::IndirectPainting);
         splitter->addWidget(graphicsView);
 
         horizontalLayout->addWidget(splitter);
@@ -168,6 +179,7 @@ public:
         stopButton->setText(QApplication::translate("MainWindow", "STOP", 0));
         label->setText(QApplication::translate("MainWindow", "Colonnes:", 0));
         cycleLabel->setText(QApplication::translate("MainWindow", "Cycle: 0", 0));
+        fpsLabel->setText(QApplication::translate("MainWindow", "FPS: 0", 0));
         menu_Fichier->setTitle(QApplication::translate("MainWindow", "&Fichier", 0));
         menuWindow->setTitle(QApplication::translate("MainWindow", "Window", 0));
     } // retranslateUi

@@ -5,7 +5,19 @@
 #include <QGLWidget>
 #include <QTime>
 
+#include <QThread>
+#include <QThreadPool>
+
 #include <QDebug>
+
+#include "bitgenerator.h"
+#include "refresh_runnable.h"
+
+//BitRefreshThread:: BitRefreshThread(int start_value, int num_thread_pool, int nb_rows, QBitArray *original_bits, QBitArray *output_bits) : QRunnable(),
+//    _start(start_value), _num_thread_pool(num_thread_pool), _nb_rows(nb_rows), _bits(original_bits), _output_bits(output_bits)
+//{
+//    qDebug() << QString("OK runnable %1").arg(_start);
+//}
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -35,6 +47,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->actionFullscreen->setShortcut(QKeySequence(QKeySequence::FullScreen));
     escShortcut = new QShortcut(QKeySequence(QString("Esc")), this);
 
+    row = sceneRect.height();
     ui->spinNbRow->setValue(row);
 
 }
@@ -71,83 +84,24 @@ void MainWindow::createBits()
 {
     int c= row * row;
     bits.resize(c);
-    qDebug() << QString("TRAND %1 %2 %3").arg(qrand()).arg(qrand()%2).arg(qrand()%2 == 1);
-    qDebug() << QString("TRAND %1 %2 %3").arg(qrand()).arg(qrand()%2).arg(qrand()%2 == 1);
-    qDebug() << QString("TRAND %1 %2 %3").arg(qrand()).arg(qrand()%2).arg(qrand()%2 == 1);
-    qDebug() << QString("TRAND %1 %2 %3").arg(qrand()).arg(qrand()%2).arg(qrand()%2 == 1);
-    qDebug() << QString("TRAND %1 %2 %3").arg(qrand()).arg(qrand()%2).arg(qrand()%2 == 1);
-    qDebug() << QString("TRAND %1 %2 %3").arg(qrand()).arg(qrand()%2).arg(qrand()%2 == 1);
-    qDebug() << QString("TRAND %1 %2 %3").arg(qrand()).arg(qrand()%2).arg(qrand()%2 == 1);
 
     for(int i =0 ; i < c ; i++)
-        bits[i] = (qrand()%2 == 1);
+        bits[i] = (qrand()%10 > 6);//%2 == 1);
 }
 
 void MainWindow::refreshBits()
 {
     QBitArray calcBit(row*row,0);
 
-    int rowmax = row-1;
     QTime t1;t1.start();
-    int base;
-    int nbLive;
-    int jp1;int jm1;int ip1; int im1;
 
-    for(int i = 1;i < row-1;i++)
-    {
-        for(int j = 1;j<row-1;j++)
-        {
-            base = calcPos(i,j);
-            nbLive = 0;
 
-            jp1 = j+1;
-            jm1 = j-1;
-            ip1 = i+1;
-            im1 = i-1;
+    for(int i = 0; i < QThread::idealThreadCount() ; i++)
+        QThreadPool::globalInstance()->start(new BitRefreshRunnable110(i, QThread::idealThreadCount(), row, &bits, &calcBit));
 
-//            nbLive = bits.testBit(calcPos(im1,jm1)) +
-//                    bits.testBit(calcPos(im1,j)) +
-//                    bits.testBit(calcPos(im1,jp1)) +
-//                    bits.testBit(calcPos(i,jm1)) +
-//                    bits.testBit(calcPos(i,jp1)) +
-//                    bits.testBit(calcPos(ip1,jm1)) +
-//                    bits.testBit(calcPos(ip1,j)) +
-//                    bits.testBit(calcPos(ip1,jp1));
+    qDebug() << "Before wait";
+    QThreadPool::globalInstance()->waitForDone();
 
-//            calcBit.clearBit(base);
-//            if (nbLive == 3 || (nbLive == 2 && bits.testBit(base)))
-//                calcBit.setBit(base);
-
-            if (j < rowmax)
-            {
-                if (bits.testBit(calcPos(i,jp1)))
-                    nbLive++;
-                if (i > 0 && bits.testBit(calcPos(im1, jp1)))
-                    nbLive++;
-                if (i < rowmax && bits.testBit(calcPos(ip1, jp1)))
-                    nbLive++;
-            }
-            if (j > 0 )
-            {
-                if(bits.testBit(calcPos(i,jm1)))
-                    nbLive++;
-                if (i > 0 && bits.testBit(calcPos(im1, jm1)))
-                    nbLive++;
-                if (i < rowmax && bits.testBit(calcPos(ip1, jm1)))
-                    nbLive++;
-            }
-            if (i < rowmax && bits.testBit(calcPos(ip1,j)))
-                nbLive++;
-            if (i > 0 && bits.testBit(calcPos(im1, j)))
-                nbLive++;
-
-            if(bits.testBit(base) == 1 && (nbLive == 2 || nbLive == 3))
-                    calcBit.setBit(base);
-            else if (bits.testBit(base) == 0 && nbLive == 3)
-                calcBit.setBit(base);
-
-        }
-    }
     qDebug() << "Cycle for " << t1.elapsed() << " ms";
     bits = calcBit;
 }
@@ -196,11 +150,12 @@ void MainWindow::stop()
 
 void MainWindow::cycle()
 {
+    int total_time = 0;
 QTime t;
 t.start();
     refreshBits();
-
-    qDebug() << "Cycle " << t.elapsed() << " ms";
+total_time = t.elapsed();
+    qDebug() << "Cycle " << total_time << " ms";
     QGraphicsScene *scene = ui->graphicsView->scene();
     if (!scene)
     {
@@ -213,9 +168,8 @@ t.start();
     QBrush brush;
     QPen pen(Qt::black, 1, Qt::DashDotLine, Qt::RoundCap, Qt::RoundJoin);
 
-    int x;
-    int y;
-    QPixmap img(scene->sceneRect().toRect().size());
+//    QPixmap img(scene->sceneRect().toRect().size());
+    QImage img(scene->sceneRect().toRect().size(), QImage::Format_RGB16);
 
     QPainter p;
     p.begin(&img);
@@ -226,35 +180,43 @@ t.start();
     p.fillRect(scene->sceneRect(), Qt::white);
 brush = Qt::red;
 p.setPen(Qt::red);
+
+
     for(int i = 0 ; i < (row*row) ; i++)
     {
-//        x = (i%row);
-//        y = (int)(i/row);
+ //        x = (i%row);
+ //        y = (int)(i/row);
 
-//        if (!bits.testBit(i))
-//            brush = Qt::white;
-//        else
+ //        if (!bits.testBit(i))
+ //            brush = Qt::white;
+ //        else
         if (bits.testBit(i))
         {
-//            brush = Qt::red;
-//            p.setBrush(brush);
-//            p.drawRect(QRect(20+(x*CELL_SIZE), (y*CELL_SIZE)+20, CELL_SIZE, CELL_SIZE));
-//            p.setPen(Qt::red);
+ //            brush = Qt::red;
+ //            p.setBrush(brush);
+ //            p.drawRect(QRect(20+(x*CELL_SIZE), (y*CELL_SIZE)+20, CELL_SIZE, CELL_SIZE));
+ //            p.setPen(Qt::red);
             p.drawPoint(20+(i%row), ((int)(i/row))+20);
+ //            p.setPixel(20+(i%row), ((int)(i/row))+20, QColor(Qt::red).value());
         }
 
-//        qDebug() << QString("i %3 x: %1 y: %2 xv: %4 yv: %5").arg(x).arg(y).arg(i).arg(x*CELL_SIZE).arg(y*CELL_SIZE);
-//        scene->addRect(
-//                    20+(x*CELL_SIZE), (y*CELL_SIZE)+20,
-//                    CELL_SIZE, CELL_SIZE,
-//                    pen, brush
-//        );
+ //        qDebug() << QString("i %3 x: %1 y: %2 xv: %4 yv: %5").arg(x).arg(y).arg(i).arg(x*CELL_SIZE).arg(y*CELL_SIZE);
+ //        scene->addRect(
+ //                    20+(x*CELL_SIZE), (y*CELL_SIZE)+20,
+ //                    CELL_SIZE, CELL_SIZE,
+ //                    pen, brush
+ //        );
     }
-    p.end();
-    scene->addPixmap(img);
 
-    qDebug() << "Display " << t.elapsed() << " ms";
+    p.end();
+//    scene->addPixmap(img);
+    scene->addPixmap(QPixmap::fromImage(img));
+
+    total_time += t.elapsed();
+    qDebug() << "Display " << total_time << " ms";
+
     cycleCount++;
     ui->cycleLabel->setText(QString("Cycle: %1").arg(cycleCount));
-    timer->start(2);
+    ui->fpsLabel->setText(QString("FPS: %1").arg(floor(1000/total_time)));
+    timer->start(1);
 }

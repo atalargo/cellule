@@ -9,6 +9,12 @@
 #define MAX_CELL    ROW*ROW
 #define CELL_SIZE   4
 
+
+
+#include <QDebug>
+
+#include <QPainter>
+
 namespace Ui {
 class MainWindow;
 }

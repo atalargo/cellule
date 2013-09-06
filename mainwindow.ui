@@ -70,14 +70,14 @@
         <enum>QFrame::Raised</enum>
        </property>
        <layout class="QVBoxLayout" name="verticalLayout">
-        <item>
+        <item alignment="Qt::AlignTop">
          <widget class="QPushButton" name="startButton">
           <property name="text">
            <string>START</string>
           </property>
          </widget>
         </item>
-        <item>
+        <item alignment="Qt::AlignTop">
          <widget class="QPushButton" name="stopButton">
           <property name="enabled">
            <bool>false</bool>
@@ -92,15 +92,27 @@
           <property name="sizeConstraint">
            <enum>QLayout::SetMaximumSize</enum>
           </property>
-          <item>
+          <item alignment="Qt::AlignTop">
            <widget class="QLabel" name="label">
+            <property name="maximumSize">
+             <size>
+              <width>16777215</width>
+              <height>28</height>
+             </size>
+            </property>
             <property name="text">
              <string>Colonnes:</string>
             </property>
            </widget>
           </item>
-          <item>
+          <item alignment="Qt::AlignTop">
            <widget class="QSpinBox" name="spinNbRow">
+            <property name="maximumSize">
+             <size>
+              <width>16777215</width>
+              <height>26</height>
+             </size>
+            </property>
             <property name="minimum">
              <number>1</number>
             </property>
@@ -113,8 +125,27 @@
         </item>
         <item>
          <widget class="QLabel" name="cycleLabel">
+          <property name="maximumSize">
+           <size>
+            <width>16777215</width>
+            <height>60</height>
+           </size>
+          </property>
           <property name="text">
            <string>Cycle: 0</string>
+          </property>
+         </widget>
+        </item>
+        <item alignment="Qt::AlignBottom">
+         <widget class="QLabel" name="fpsLabel">
+          <property name="maximumSize">
+           <size>
+            <width>16777215</width>
+            <height>60</height>
+           </size>
+          </property>
+          <property name="text">
+           <string>FPS: 0</string>
           </property>
          </widget>
         </item>
@@ -144,6 +175,9 @@
        </property>
        <property name="cacheMode">
         <set>QGraphicsView::CacheBackground</set>
+       </property>
+       <property name="optimizationFlags">
+        <set>QGraphicsView::DontAdjustForAntialiasing|QGraphicsView::DontClipPainter|QGraphicsView::DontSavePainterState|QGraphicsView::IndirectPainting</set>
        </property>
       </widget>
      </widget>
